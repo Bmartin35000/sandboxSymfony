@@ -5,18 +5,19 @@ namespace App\Controller;
 use App\Entity\Recipe;
 use App\Form\Type\RecipeType;
 use App\Repository\RecipeRepository;
-use Doctrine\DBAL\Types\TextType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Psr\Log\LoggerInterface;
 
 final class RecipeController extends AbstractController
 {
-    #[Route('/recipe', name: 'app_recipe')]
+    const CLASS_NAME="Recettes";
+
+    #[Route('/recipe', name: 'getRecipes')]
     public function findAll(RecipeRepository $recipeRepository): Response
     {
         $recipes = $recipeRepository->findAll();
@@ -25,34 +26,84 @@ final class RecipeController extends AbstractController
         }
         return $this->render('recipe/index.html.twig', [
             'recipes' => $recipes,
+            'className'=> RecipeController::CLASS_NAME
         ]);
     }
 
-    #[Route('/recipe/create', name:'getCreateRecipeForm', methods:["GET"])]
-    public function getCreateRecipeForm(RecipeType $recipeType):Response{
-        $recipe = new Recipe();
-        $formBuilder = $this->createFormBuilder($recipe);
-        $recipeType->buildForm($formBuilder);
-        $form = $formBuilder-> getForm();
-        return $this->render('recipe/form.html.twig', [
-            "form"=>$form
-        ]);
-    }
-
-    #[Route('/recipe/create', name:'create_recipe', methods:["POST"])]
-    public function createRecipe(EntityManagerInterface $entityManager, ValidatorInterface $validator):Response{
-        $recipe = new Recipe();
-        $recipe->setTitle('test');
-        $recipe->setDescription('test');
-
-        $errors = $validator->validate($recipe);
-        if (count($errors)>0) {
-            return new Response((string) $errors, 400);
+    #[Route('/recipe/{{id}}', name: 'getRecipe')]
+    public function show(Recipe $recipe): Response
+    {
+        if(!$recipe){
+            throw $this->createNotFoundException('No recipe found');
         }
+        return $this->render('recipe/show.html.twig', [
+            'recipe' => $recipe,
+            'className'=> RecipeController::CLASS_NAME
+        ]);
+    }
+
+    #[Route('/recipe/edit/{{id}}', name:'editRecipe')]
+    public function edit(LoggerInterface $logger, Recipe $recipe, Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator):Response{        
+        return $this->new($logger, $recipe, $request, $entityManager, $validator);
+    }
+
+    #[Route('/recipe/create', name:'newRecipe')]
+    public function new(LoggerInterface $logger, Recipe|null $recipe, Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator):Response{
+        // Create new or edit form
+        if(!$recipe){
+            $recipe = new Recipe();
+        } 
+
+        $form =$this->createForm(RecipeType::class, $recipe); // will find buildForm method
+
+        $form->handleRequest($request); // créé un thread qui attend un submit et écrit la data renseigné dans le recipe du form une fois submit
+
+        if ($form->isSubmitted() && $form->isValid()) { // différencie get et post
+            $recipe=$form->getData();
+
+            $errors = $validator->validate($recipe);
+            if (count($errors)>0) {
+                return new Response((string) $errors, 400);
+            }
+
+            // uploading locally the image file
+            $file = $form['imageFile']->getData();
+            if($file){
+                $dest = $this->getParameter('kernel.project_dir').'/public/images/uploads';
+                $uniqueFileName = uniqid().'-'.$file->getClientOriginalName();
+                $recipe->image = $uniqueFileName; // set the file name in db
+                $file->move(
+                    $dest, 
+                    $uniqueFileName
+                );
+            }
+            
+            // prepare query
+            $entityManager->persist($recipe);
+            // execute query
+            $entityManager->flush();
+
+            return $this->redirectToRoute('getRecipes');
+        }
+
+        return $this->render('recipe/form.html.twig', [
+            "form"=>$form,
+            'className'=> RecipeController::CLASS_NAME
+        ]);
+    }
+
+    #[Route('/recipe/delete/{{id}}', name:'deleteRecipe')]
+    public function delete(Recipe $recipe, EntityManagerInterface $entityManager):Response{
+        if(!$recipe){
+            throw $this->createNotFoundException('No recipe found');
+        }
+
         // prepare query
-        $entityManager->persist($recipe);
+        $entityManager->remove($recipe);
         // execute query
         $entityManager->flush();
-        return new Response('Saved new Recipe with id : '.$recipe->getId());
+
+        return $this->redirectToRoute('getRecipes');
     }
+    
 }

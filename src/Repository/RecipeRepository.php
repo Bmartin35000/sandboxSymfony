@@ -13,19 +13,11 @@ class RecipeRepository extends ServiceEntityRepository
         parent::__construct($registry, Recipe::class);
     }
 
-    public function findOneByTitle($title): ?Recipe
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.title = :val')
-            ->setParameter('val', $title)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
 
     public function findAll(): array
     {
         return $this->createQueryBuilder('r')
+            ->orderBy('r.title')
             ->getQuery()
             ->getResult()
         ;
