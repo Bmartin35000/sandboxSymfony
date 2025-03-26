@@ -1,0 +1,11 @@
+{% if route == 'getRecipes' %}
+    <a type="button" class="btn btn-success" href="{{ path('newRecipe') }}">Ajouter une nouvelle recette</a>
+{% elseif route == 'getRecipe' %}
+    <a type="button" class="btn btn-secondary" href="{{ path('getRecipes') }}">Retour</a>
+    <a type="button" class="btn btn-success" href="{{ path('editRecipe' , { id:recipe.id }) }}">Modifier cette recette</a>
+    <a type="button" class="btn btn-danger" href="{{ path('deleteRecipe' , { id:recipe.id }) }}">Supprimer cette recette</a>
+{% elseif route == 'editRecipe' %}
+    <a type="button" class="btn btn-secondary" href="{{ path('getRecipes') }}">Retour</a>
+{% elseif route == 'newRecipe' %}
+    <a type="button" class="btn btn-secondary" href="{{ path('getRecipes') }}">Retour</a>
+{% endif %}

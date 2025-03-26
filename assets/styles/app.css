@@ -11,3 +11,11 @@ body {
     display: flex;
     justify-content: center;
 }
+
+.image-show {
+    padding:0.5rem;
+    display: block;
+    max-height:20rem;
+    width: auto;
+    height: auto;
+}

@@ -26,7 +26,8 @@ final class RecipeController extends AbstractController
         }
         return $this->render('recipe/index.html.twig', [
             'recipes' => $recipes,
-            'className'=> RecipeController::CLASS_NAME
+            'className'=> RecipeController::CLASS_NAME,
+            'route'=> 'getRecipes'
         ]);
     }
 
@@ -38,17 +39,18 @@ final class RecipeController extends AbstractController
         }
         return $this->render('recipe/show.html.twig', [
             'recipe' => $recipe,
-            'className'=> RecipeController::CLASS_NAME
+            'className'=> RecipeController::CLASS_NAME,
+            'route'=> 'getRecipe'
         ]);
     }
 
     #[Route('/recipe/edit/{{id}}', name:'editRecipe')]
     public function edit(LoggerInterface $logger, Recipe $recipe, Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator):Response{        
-        return $this->new($logger, $recipe, $request, $entityManager, $validator);
+        return $this->new($logger, $recipe, $request, $entityManager, $validator, 'editRecipe');
     }
 
     #[Route('/recipe/create', name:'newRecipe')]
-    public function new(LoggerInterface $logger, Recipe|null $recipe, Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator):Response{
+    public function new(LoggerInterface $logger, Recipe|null $recipe, Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, ?string $routeName='newRecipe'):Response{
         // Create new or edit form
         if(!$recipe){
             $recipe = new Recipe();
@@ -64,6 +66,11 @@ final class RecipeController extends AbstractController
             $errors = $validator->validate($recipe);
             if (count($errors)>0) {
                 return new Response((string) $errors, 400);
+            }
+
+            // removing previous image file
+            if ($recipe->image) {
+                unlink($this->getParameter("public_directory").'/images/uploads/'.$recipe->image);
             }
 
             // uploading locally the image file
@@ -88,7 +95,8 @@ final class RecipeController extends AbstractController
 
         return $this->render('recipe/form.html.twig', [
             "form"=>$form,
-            'className'=> RecipeController::CLASS_NAME
+            'className'=> RecipeController::CLASS_NAME,
+            'route'=> $routeName
         ]);
     }
 
@@ -105,5 +113,4 @@ final class RecipeController extends AbstractController
 
         return $this->redirectToRoute('getRecipes');
     }
-    
 }

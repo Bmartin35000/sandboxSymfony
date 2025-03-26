@@ -15,6 +15,7 @@
         <div class="example-wrapper">
             <h1 class="center">{{className}}</h1>
             <div class="container">
+                {% include('navBar.html.twig')%}
                 {% block body %}{% endblock %}
             </div>
         </div>

@@ -8,13 +8,18 @@
         .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
     </style>
 
-    <a type="button" class="btn btn-secondary" href="{{ path('getRecipes') }}">Retour</a>
-    <a type="button" class="btn btn-success" href="{{ path('editRecipe' , { id:recipe.id }) }}">Modifier cette recette</a>
-    <a type="button" class="btn btn-danger" href="{{ path('deleteRecipe' , { id:recipe.id }) }}">Supprimer cette recette</a>
     <div class="card" style="width: 100%; margin:1%;">
-        <img class="card-img-top" src="..." alt="">
         <div class="card-body">
-            <h5 class="card-title">{{recipe.title}}</h5>
+            <h2 class="card-title">{{recipe.title}}</h2>
+
+            {% if recipe.image == null %}
+                <img class="card-img-top" style="padding:0.5rem;" src="/images/recetteDefaultImage.png"> {# root is public folder #}
+            {% else %}
+                <div>
+                    <img class="card-img-top" style="padding:0.5rem;" src="/images/uploads/{{recipe.image|raw}}">
+                </div>
+            {% endif %}
+
             <p class="card-text">{{recipe.description}}</p>
         </div>
     </div>

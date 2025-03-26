@@ -8,14 +8,12 @@
         .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
     </style>
 
-    <a type="button" class="btn btn-success" href="{{ path('newRecipe') }}">Ajouter une nouvelle recette</a>
-
     {% for recipe in recipes %}
         {% if loop.index %2 != 0 %}
         <div class="row">
         {% endif %}
             <div class="col-sm">
-                <div class="card" style="width: 18rem;">
+                <div class="card" style="width: 20rem; height: 100%;">
                     {% if recipe.image == null %}
                         <img class="card-img-top" style="padding:0.5rem;" src="/images/recetteDefaultImage.png"> {# root is public folder #}
                     {% else %}
