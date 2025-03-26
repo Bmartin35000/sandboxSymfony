@@ -1,8 +1,10 @@
 <?php
 namespace App\Form\Type;
 
+use App\Entity\Instruction;
 use App\Entity\Recipe;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -17,6 +19,13 @@ class RecipeType extends AbstractType
         $builder
             ->add('title', TextType::class)
             ->add('description', TextType::class,['required'=>false])
+            ->add('instructions', CollectionType::class,
+                ['required'=>false, 
+                'entry_type' => InstructionType::class,
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
+                'label'=> false])
             ->add('imageFile', FileType::class,[
                 'required'=>false,
                 'mapped'=>false,

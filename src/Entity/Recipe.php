@@ -5,10 +5,18 @@ namespace App\Entity;
 use App\Repository\RecipeRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: RecipeRepository::class)]
 class Recipe
 {
+    function __construct() {
+        // cannot do it as default value cause it require execution
+        $this->instructions = new ArrayCollection([]);
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -24,6 +32,9 @@ class Recipe
     #[ORM\Column(length: 255)]
     public ?string $image = null;  //image name
 
+    #[OneToMany(targetEntity: Instruction::class, mappedBy: 'recipe', cascade: ['remove','persist'])]
+    public Collection $instructions;
+        
     public function getId(): int
     {
         return $this->id;
@@ -51,5 +62,15 @@ class Recipe
         $this->description = $description;
 
         return $this;
+    }
+
+    public function addInstruction(Instruction $instruction): void
+    {
+        $this->instructions->add($instruction);
+    }
+
+    public function removeInstruction(Instruction $instruction): void
+    {
+        $this->instructions->removeElement($instruction);
     }
 }

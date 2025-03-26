@@ -8,5 +8,39 @@
         .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
     </style>
 
-    {{ form(form) }}
+    {{ form_start(form) }}
+        {{ form_row(form.title) }}
+        {{ form_row(form.description) }}
+        {{ form_row(form.imageFile) }}
+        {# the data-index attribute is required for the JavaScript code below #}
+        <h3>Instructions</h3>
+        <ul class="instructions"
+            data-index="{{ form.instructions|length > 0 ? form.instructions|last.vars.name + 1 : 0 }}"
+            data-prototype="{{ form_widget(form.instructions.vars.prototype)|e('html_attr') }}"
+        ></ul>
+        <button type="button" class="btn btn-success" id="add_item_link" data-collection-holder-class="instructions">Ajouter une instruction</button>
+    {{ form_end(form) }}
+
+    <script>
+        document.getElementById('add_item_link')
+            .addEventListener("click", addFormToCollection);
+
+        function addFormToCollection(e) {
+            const collectionHolder = document.querySelector('.' + e.currentTarget.dataset.collectionHolderClass);
+
+            const item = document.createElement('li');
+
+            item.innerHTML = collectionHolder
+                .dataset
+                .prototype
+                .replace(
+                    /__name__/g,
+                    collectionHolder.dataset.index
+                );
+
+            collectionHolder.appendChild(item);
+
+            collectionHolder.dataset.index++;
+        };        
+    </script>
 {% endblock %}

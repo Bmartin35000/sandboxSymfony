@@ -21,9 +21,6 @@ final class RecipeController extends AbstractController
     public function findAll(RecipeRepository $recipeRepository): Response
     {
         $recipes = $recipeRepository->findAll();
-        if(!$recipes){
-            throw $this->createNotFoundException('No recipes found');
-        }
         return $this->render('recipe/index.html.twig', [
             'recipes' => $recipes,
             'className'=> RecipeController::CLASS_NAME,
@@ -68,13 +65,16 @@ final class RecipeController extends AbstractController
                 return new Response((string) $errors, 400);
             }
 
-            // removing previous image file
-            if ($recipe->image) {
+            // retrieve new image
+            $file = $form['imageFile']->getData();
+
+            // removing previous image file if a new one is set
+            if ($recipe->image && $file) {
                 unlink($this->getParameter("public_directory").'/images/uploads/'.$recipe->image);
+                $recipe->image = null;
             }
 
-            // uploading locally the image file
-            $file = $form['imageFile']->getData();
+            // uploading locally the new image file
             if($file){
                 $dest = $this->getParameter('kernel.project_dir').'/public/images/uploads';
                 $uniqueFileName = uniqid().'-'.$file->getClientOriginalName();
@@ -85,6 +85,11 @@ final class RecipeController extends AbstractController
                 );
             }
             
+            // set the recipe on the instructions
+            foreach ($recipe->instructions as $instruction) {
+                $instruction->recipe = $recipe;
+            }
+
             // prepare query
             $entityManager->persist($recipe);
             // execute query
@@ -104,6 +109,11 @@ final class RecipeController extends AbstractController
     public function delete(Recipe $recipe, EntityManagerInterface $entityManager):Response{
         if(!$recipe){
             throw $this->createNotFoundException('No recipe found');
+        }
+
+         // removing image file if exists
+         if ($recipe->image) {
+            unlink($this->getParameter("public_directory").'/images/uploads/'.$recipe->image);
         }
 
         // prepare query

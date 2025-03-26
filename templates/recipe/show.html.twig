@@ -13,12 +13,21 @@
             <h2 class="card-title">{{recipe.title}}</h2>
 
             {% if recipe.image == null %}
-                <img class="card-img-top" style="padding:0.5rem;" src="/images/recetteDefaultImage.png"> {# root is public folder #}
+                <img class="card-img-top image-show" style="padding:0.5rem;" src="/images/recetteDefaultImage.png"> {# root is public folder #}
             {% else %}
                 <div>
-                    <img class="card-img-top" style="padding:0.5rem;" src="/images/uploads/{{recipe.image|raw}}">
+                    <img class="card-img-top image-show" style="padding:0.5rem;" src="/images/uploads/{{recipe.image|raw}}">
                 </div>
             {% endif %}
+
+            {% if recipe.instructions | length > 0 %}
+                <h3>Instructions</h3>
+                <ul class="list-group list-group-flush">
+                    {% for instruction in recipe.instructions %}
+                        <li class="list-group-item">{{instruction.description}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}            
 
             <p class="card-text">{{recipe.description}}</p>
         </div>
