@@ -19,3 +19,18 @@ body {
     width: auto;
     height: auto;
 }
+
+.instructionItemListItem {
+    display : flex;
+    align-items: flex-start;
+}
+
+.instructionItemInput {
+    width: 100%;
+    margin-right: 1%;
+}
+
+.previousInstructionItem {
+    margin-top: 2%;
+    margin-left: 5%;
+}

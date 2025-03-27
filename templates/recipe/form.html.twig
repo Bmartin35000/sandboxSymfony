@@ -16,7 +16,7 @@
         <h3>Instructions</h3>
         <ul class="instructions"
             data-index="{{ form.instructions|length > 0 ? form.instructions|last.vars.name + 1 : 0 }}"
-            data-prototype="{{ form_widget(form.instructions.vars.prototype)|e('html_attr') }}"
+            data-prototype="{{ form_widget(form.instructions.vars.prototype, {'attr': {'class': 'instructionItemInput'}})|e('html_attr') }}"
         ></ul>
         <button type="button" class="btn btn-success" id="add_item_link" data-collection-holder-class="instructions">Ajouter une instruction</button>
     {{ form_end(form) }}
@@ -25,11 +25,33 @@
         document.getElementById('add_item_link')
             .addEventListener("click", addFormToCollection);
 
+        existingInstructions = document.getElementById('recipe_instructions');
+
+        // removing legends
+        uselessLegends = existingInstructions.getElementsByTagName("legend");
+        arrayToDelete = [];
+        for (let item of uselessLegends) {
+            arrayToDelete.push(item);
+        }
+        arrayToDelete.forEach(element => {
+            element.remove();
+        });
+
+        // adding class and delete btn for instructions that already exists
+        items = existingInstructions.getElementsByTagName("fieldset");
+        for (let item of items) {
+            addDeleteBtn(item);
+            item.className += " instructionItemListItem previousInstructionItem";
+            item.children[0].className += " instructionItemInput";
+        }
+
         function addFormToCollection(e) {
+            // list
             const collectionHolder = document.querySelector('.' + e.currentTarget.dataset.collectionHolderClass);
 
+            // item list input
             const item = document.createElement('li');
-
+            item.className = "instructionItemListItem";
             item.innerHTML = collectionHolder
                 .dataset
                 .prototype
@@ -37,10 +59,24 @@
                     /__name__/g,
                     collectionHolder.dataset.index
                 );
-
             collectionHolder.appendChild(item);
 
             collectionHolder.dataset.index++;
-        };        
+
+            addDeleteBtn(item);
+        };  
+
+        function addDeleteBtn(item) {
+            const removeFormButton = document.createElement('button');
+            removeFormButton.innerText = '🗑️';
+
+            item.append(removeFormButton);
+
+            removeFormButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                // remove the li for the instruction form
+                item.remove();
+            });
+        }
     </script>
 {% endblock %}

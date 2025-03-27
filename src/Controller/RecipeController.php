@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Log\LoggerInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final class RecipeController extends AbstractController
 {
@@ -49,9 +50,17 @@ final class RecipeController extends AbstractController
     #[Route('/recipe/create', name:'newRecipe')]
     public function new(LoggerInterface $logger, Recipe|null $recipe, Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, ?string $routeName='newRecipe'):Response{
         // Create new or edit form
+        $method = "";
         if(!$recipe){
             $recipe = new Recipe();
-        } 
+            $method = "create";
+        } else {
+            $initialInstructions = new ArrayCollection();
+            $method = "edit";
+            foreach ($recipe->instructions as $instruction) {
+                $initialInstructions->add($instruction);
+            }
+        }
 
         $form =$this->createForm(RecipeType::class, $recipe); // will find buildForm method
 
@@ -59,6 +68,15 @@ final class RecipeController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) { // différencie get et post
             $recipe=$form->getData();
+
+            // Deleting removed instructions
+            if ($method == "edit") {
+                foreach ($initialInstructions as $oldInstr) {
+                    if (!$recipe->instructions->contains($oldInstr)) {
+                        $entityManager->remove($oldInstr);
+                    }
+                }
+            }            
 
             $errors = $validator->validate($recipe);
             if (count($errors)>0) {
